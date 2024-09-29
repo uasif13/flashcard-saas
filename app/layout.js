@@ -3,14 +3,19 @@
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
-import { ClerkProvider } from '@clerk/nextjs';
+import dynamic from 'next/dynamic';
 import discoTheme from './theme';
+
+const ClerkProviderWithoutSSR = dynamic(() => 
+  import('@clerk/nextjs').then((mod) => mod.ClerkProvider),
+  { ssr: false }
+);
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <ClerkProvider>
+        <ClerkProviderWithoutSSR>
           <ThemeProvider theme={discoTheme}>
             <CssBaseline />
             <Box
@@ -25,7 +30,7 @@ export default function RootLayout({ children }) {
               {children}
             </Box>
           </ThemeProvider>
-        </ClerkProvider>
+        </ClerkProviderWithoutSSR>
       </body>
     </html>
   );
