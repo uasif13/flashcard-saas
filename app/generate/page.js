@@ -6,8 +6,10 @@ import { Box, Button, Card, CardActionArea, CardContent, Container, Dialog, Dial
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { doc, collection, setDoc, getDoc, writeBatch } from "firebase/firestore/lite"
+import { useTheme } from '@mui/material/styles'
 
 export default function Generate() {
+    const theme = useTheme()
     const { isLoaded, isSignedIn, user } = useUser()
     const [flashcards, setFlashcards] = useState(null)
     const [flipped, setFlipped] = useState([])
@@ -41,7 +43,7 @@ export default function Generate() {
             if (data && Array.isArray(data)) {
                 setFlashcards(data);
             } else {
-                throw new Error('Invalid response format1');
+                throw new Error('Invalid response format');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -105,10 +107,38 @@ export default function Generate() {
             <Box sx={{
                 mt: 4, mb: 6, display: 'flex', flexDirection: 'column', alignItems: 'center'
             }}>
-                <Typography variant="h4">Generate Flashcards</Typography>
-                <Paper sx={{ p: 4, width: '100%' }}>
-                    <TextField value={text} onChange={(e) => setText(e.target.value)} label="Enter text" fullWidth multiline rows={4} variant="outlined" sx={{ mb: 2 }} />
-                    <Button variant="contained" color="primary" fullWidth onClick={handleSubmit}>Submit</Button>
+                <Typography variant="h4" color="secondary" gutterBottom sx={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+                    Generate Flashcards
+                </Typography>
+                <Paper sx={{ p: 4, width: '100%', backgroundColor: 'background.paper', borderRadius: '15px' }}>
+                    <TextField 
+                        value={text} 
+                        onChange={(e) => setText(e.target.value)} 
+                        label="Enter text" 
+                        fullWidth 
+                        multiline 
+                        rows={4} 
+                        variant="outlined" 
+                        sx={{ mb: 2, 
+                            '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                    borderColor: 'primary.main',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: 'secondary.main',
+                                },
+                            },
+                        }} 
+                        InputProps={{
+                            style: { color: theme.palette.text.primary }
+                        }}
+                        InputLabelProps={{
+                            style: { color: theme.palette.text.secondary }
+                        }}
+                    />
+                    <Button variant="contained" color="primary" fullWidth onClick={handleSubmit}>
+                        Submit
+                    </Button>
                 </Paper>
             </Box>
 
@@ -119,16 +149,25 @@ export default function Generate() {
             {console.log("Rendering, flashcards:", flashcards)}
 
             {flashcards === null ? (
-                <Typography>Enter text and click submit to generate flashcards.</Typography>
+                <Typography color="text.primary">Enter text and click submit to generate flashcards.</Typography>
             ) : flashcards.length === 0 ? (
-                <Typography>No flashcards generated. Try submitting again.</Typography>
+                <Typography color="text.primary">No flashcards generated. Try submitting again.</Typography>
             ) : (
                 <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5">Flashcards preview</Typography>
+                    <Typography variant="h5" color="secondary" gutterBottom sx={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+                        Flashcards preview
+                    </Typography>
                     <Grid container spacing={3}>
                         {flashcards.map((flashcard, index) => (
                             <Grid item xs={12} sm={6} md={4} key={index}>
-                                <Card>
+                                <Card sx={{ 
+                                    backgroundColor: 'background.paper',
+                                    transition: 'all 0.3s',
+                                    '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 0 15px rgba(255, 20, 147, 0.5)',
+                                    }
+                                }}>
                                     <CardActionArea onClick={() => handleCardClick(index)}>
                                         <CardContent>
                                             <Box sx={{
@@ -139,7 +178,7 @@ export default function Generate() {
                                                     position: 'relative',
                                                     width: '100%',
                                                     height: '200px',
-                                                    boxShadow: '0 4px 8px 0 rgba(0,0,0, 0.2)',
+                                                    boxShadow: '0 4px 8px 0 rgba(255, 20, 147, 0.2)',
                                                     transform: flipped[index] ? 'rotateY(180deg)' : 'rotateY(0deg)'
                                                 },
                                                 '& > div > div': {
@@ -152,6 +191,8 @@ export default function Generate() {
                                                     alignItems: 'center',
                                                     padding: 2,
                                                     boxSizing: 'border-box',
+                                                    backgroundColor: 'background.paper',
+                                                    borderRadius: '10px',
                                                 },
                                                 '& > div > div:nth-of-type(2)': {
                                                     transform: 'rotateY(180deg)',
@@ -159,12 +200,12 @@ export default function Generate() {
                                             }}>
                                                 <div>
                                                     <div>
-                                                        <Typography variant="h6" component="div">
+                                                        <Typography variant="h6" component="div" color="primary">
                                                             {flashcard.front}
                                                         </Typography>
                                                     </div>
                                                     <div>
-                                                        <Typography variant="body1" component="div">
+                                                        <Typography variant="body1" component="div" color="secondary">
                                                             {flashcard.back}
                                                         </Typography>
                                                     </div>
@@ -184,18 +225,42 @@ export default function Generate() {
                 </Box>
             )}
 
-            <Dialog open={open} onClose={handleClose}>
+            <Dialog 
+                open={open} 
+                onClose={handleClose}
+                PaperProps={{
+                    style: {
+                        backgroundColor: theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                        boxShadow: '0 0 20px rgba(255, 20, 147, 0.5)',
+                    },
+                }}
+            >
                 <DialogTitle>Save Flashcards</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        PLease enter a name for your flashcards collection
+                    <DialogContentText color="text.secondary">
+                        Please enter a name for your flashcards collection
                     </DialogContentText>
-                    <TextField autoFocus margin="dense" label="Collection Name" type="text" fullWidth value={name}
-                        onChange={(e) => setName(e.target.value)} variant="outlined" />
+                    <TextField 
+                        autoFocus 
+                        margin="dense" 
+                        label="Collection Name" 
+                        type="text" 
+                        fullWidth 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)} 
+                        variant="outlined" 
+                        InputProps={{
+                            style: { color: theme.palette.text.primary }
+                        }}
+                        InputLabelProps={{
+                            style: { color: theme.palette.text.secondary }
+                        }}
+                    />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button onClick={saveFlashcards}>Save</Button>
+                    <Button onClick={handleClose} color="primary">Cancel</Button>
+                    <Button onClick={saveFlashcards} color="secondary">Save</Button>
                 </DialogActions>
             </Dialog>
         </Container>
