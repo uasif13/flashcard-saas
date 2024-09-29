@@ -55,7 +55,7 @@ Return in the following JSON format
 `
 
 export async function POST(req){
-    const openai = new OpenAI()
+    const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY})
     const data = await req.text()
 
     const completion = await openai.chat.completions.create({
@@ -63,7 +63,7 @@ export async function POST(req){
             {role: "system", content: systemPrompt},
             {role: "user", content: data},
         ],
-        model: "gpt-4o-mini", // will this work without buying anything?
+        model: "gpt-3.5-turbo", // will this work without buying anything?
         response_format:{type: 'json_object'}
     })
 
@@ -71,5 +71,5 @@ export async function POST(req){
 
     const flashcards = JSON.parse(completion.choices[0].message.content)
 
-    return NextResponse.json(flashcards.flashcards) // flashcard or flashcards?
+    return Response.json(flashcards.flashcards) // flashcard or flashcards?
 }
